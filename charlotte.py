@@ -23,7 +23,10 @@ class Point(object):
 
     def rotate(self, theta):
         rotation_mat = np.matrix(
-            [[cos(theta), sin(theta)], [-sin(theta), cos(theta)]]
+            [
+                [cos(theta), sin(theta)],
+                [-sin(theta), cos(theta)],
+            ]
         )
         rotated = (rotation_mat @ np.matrix((self.x, self.y)).T).T.getA1()
         self.x = rotated[0]
@@ -53,21 +56,25 @@ class Line(object):
 
 class CharlottesWeb(object):
     def __init__(self):
-        self.width = 600
-        self.height = 600
+        self.im_scale = 4
+        self.final_width = 1200
+        self.final_height = 1200
+        self.width = self.final_width * self.im_scale
+        self.height = self.final_height * self.im_scale
         self.center = (self.width / 2, self.height / 2)
         self.web_lines = []
-        self.num_circles = 20
+        self.num_circles = 75
         self.im = Image.new(
             'RGBA',
             (self.width, self.height),
-            (50, 50, 50, 0),
+            (20, 20, 20, 0),
         )
         self.draw = ImageDraw.Draw(self.im)
 
     def render(self):
         self.draw_web_lines()
         self.draw_web_circles()
+        self.im.resize((self.final_width, self.final_height))
         self.im.show()
 
     def draw_web_circle(self, offset):
@@ -104,9 +111,13 @@ class CharlottesWeb(object):
         )
 
     def draw_web_circles(self):
-        for i in range(self.num_circles):
-            # todo make this non-linear
-            offset = 10 + 15 * i
+        growth_rate = 1.5
+        min_offset = math.log(1)
+        max_offset = math.log(self.height * growth_rate * 10)
+        log_space = np.linspace(min_offset, max_offset, num=self.num_circles)
+        for log_off in log_space:
+            offset = math.exp(log_off / growth_rate) * max_offset
+            # import ipdb; ipdb.set_trace()
             self.draw_web_circle(offset)
 
     def draw_web_lines(self):
@@ -114,7 +125,6 @@ class CharlottesWeb(object):
         for line in range(num_lines // 2):
             start = Point(0, 1.5 * self.height // 2)
             end = Point(0, -1.5 * self.height // 2)
-            # theta = 2 * math.pi * (line / num_lines)
             theta = 2 * math.pi * (line / num_lines)
             theta += (random.random() - 0.5) / 2
             nstart = self.trans_to_pil(start.rotate(theta))
