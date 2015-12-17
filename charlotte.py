@@ -8,7 +8,7 @@ import random
 from math import sin, cos
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 
 class CharlottesWeb(object):
@@ -33,6 +33,7 @@ class CharlottesWeb(object):
     def render(self):
         self.draw_web_lines()
         self.draw_web_circles()
+        self.sign_image()
         self.im.resize((self.final_width, self.final_height))
         self.im.show()
 
@@ -143,6 +144,12 @@ class CharlottesWeb(object):
             p_final = p1 * t + (1 - t) * p2
             self.draw_line(Line(p_prev, p_final))
             p_prev = p_final
+
+    def sign_image(self):
+        fnt = ImageFont.truetype('Pillow/Tests/fonts/FreeMono.ttf', 40)
+        current_data = hash(self)
+        print(current_data)
+        # import ipdb; ipdb.set_trace()
 
     def trans_to_cartesian(self, point):
         return Point(point.x - self.width / 2, point.y - self.height / 2)
