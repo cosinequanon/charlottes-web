@@ -2,6 +2,7 @@
 #     with open(afile, "r") as fh:
 #         exec(fh.read(), globalz, localz)
 
+import hashlib
 import math
 import random
 
@@ -146,10 +147,23 @@ class CharlottesWeb(object):
             p_prev = p_final
 
     def sign_image(self):
-        fnt = ImageFont.truetype('Pillow/Tests/fonts/FreeMono.ttf', 40)
-        current_data = hash(self)
-        print(current_data)
-        # import ipdb; ipdb.set_trace()
+        font = ImageFont.truetype('fonts/Tangerine_Regular.ttf', 60)
+        signature = self._current_state_to_string()
+        self.draw.text(
+            (int(self.height * 0.77), int(self.width * 0.97)),
+            signature,
+            font=font,
+        )
+
+    def _current_state_to_string(self):
+        current_data = str(hash(self)).encode('utf-8')
+        md5 = hashlib.md5()
+        md5.update(current_data)
+        hex_vals = md5.hexdigest()
+        signature = [chr((ord(char) % 26) + 97) for char in hex_vals]
+        first_name = ''.join(signature[:8]).capitalize()
+        last_name = ''.join(signature[8:20]).capitalize()
+        return first_name + ' ' + last_name
 
     def trans_to_cartesian(self, point):
         return Point(point.x - self.width / 2, point.y - self.height / 2)
