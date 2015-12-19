@@ -22,7 +22,7 @@ class CharlottesWeb(object):
     def __init__(self, image=None):
         self.im_scale = 2
         self.final_width = 1200
-        self.final_height = 1200
+        self.final_height = int(self.final_width * (5 / 7))
         self.width = self.final_width * self.im_scale
         self.height = self.final_height * self.im_scale
         self.center = (self.width / 2, self.height / 2)
@@ -90,12 +90,10 @@ class CharlottesWeb(object):
         max_offset = math.log(self.height * growth_rate * 10)
         log_space = np.linspace(min_offset, max_offset, num=self.num_circles)
         random_var = np.array(
-            # [0.5 for _ in range(self.num_circles)],
             [0.05 * random.random() for _ in range(self.num_circles)],
         )
         for log_off in (log_space + random_var):
             offset = math.exp(log_off / growth_rate) * max_offset + 10
-            # import ipdb; ipdb.set_trace()
             self.draw_web_circle(offset)
 
     def draw_web_lines(self):
@@ -282,3 +280,4 @@ if __name__ == '__main__':
         image = CharlottesWeb(image).draw_image()
     image = CharlottesWeb(image).draw_image(signature=True)
     image.show()
+    image.save("outfile.png", "PNG", Quality = 100)
