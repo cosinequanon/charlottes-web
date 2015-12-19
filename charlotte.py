@@ -29,7 +29,6 @@ class CharlottesWeb(object):
 
         self.web_lines = []
         self.line_color = (170, 188, 190, 1)
-        # self.line_color = (234, 251, 255, 1)
         self.num_circles = 50
 
         if image is not None:
@@ -169,7 +168,7 @@ class CharlottesWeb(object):
         font = ImageFont.truetype('fonts/Tangerine_Regular.ttf', 60)
         signature = self._current_state_to_string()
         self.draw.text(
-            (int(self.height * 0.77), int(self.width * 0.97)),
+            (int(self.height * 1.14), int(self.width * 0.68)),
             signature,
             font=font,
         )
