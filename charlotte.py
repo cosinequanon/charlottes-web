@@ -279,4 +279,4 @@ if __name__ == '__main__':
         image = CharlottesWeb(image).draw_image()
     image = CharlottesWeb(image).draw_image(signature=True)
     image.show()
-    image.save("outfile.png", "PNG", Quality = 100)
+    image.save("images/out.png", "PNG", Quality = 100)
