@@ -15,27 +15,40 @@ from PIL import Image, ImageDraw, ImageFont
 class CharlottesWeb(object):
     """ Generates an image of a spider's web. """
 
-    def __init__(self):
+    color_white = (220, 220, 220)
+
+    def __init__(self, image=None):
         self.im_scale = 2
         self.final_width = 1200
         self.final_height = 1200
         self.width = self.final_width * self.im_scale
         self.height = self.final_height * self.im_scale
         self.center = (self.width / 2, self.height / 2)
+
         self.web_lines = []
+        self.line_color = (170, 188, 190, 1)
+        # self.line_color = (234, 251, 255, 1)
         self.num_circles = 50
-        self.im = Image.new(
-            'RGBA',
-            (self.width, self.height),
-            (20, 20, 20, 0),
-        )
+
+        if image is not None:
+            self.im = image
+        else:
+            self.im = Image.new(
+                'RGBA',
+                (self.width, self.height),
+                (17, 17, 23, 0),
+            )
         self.draw = ImageDraw.Draw(self.im)
 
-    def render(self):
+    def draw_image(self, signature=False):
         self.draw_web_lines()
         self.draw_web_circles()
-        self.sign_image()
+        if signature:
+            self.sign_image()
         self.im.resize((self.final_width, self.final_height))
+        return self.im
+
+    def show(self):
         self.im.show()
 
     def draw_web_circle(self, offset):
@@ -53,26 +66,15 @@ class CharlottesWeb(object):
             off_line_negative_1 = Line(p1_negative, p2_positive)
             off_line_negative_2 = Line(p1_negative, p2_negative)
 
-            if random.random() < 0.01:
+            if random.random() < 0.05:
                 return
 
             if off_line_positive_1.length < off_line_positive_2.length:
-                self.draw_web_bezier(off_line_positive_1)
-                self.draw_web_bezier(off_line_negative_2)
+                self.draw_web_bezier(off_line_positive_1, self.line_color)
+                self.draw_web_bezier(off_line_negative_2, self.line_color)
             else:
-                self.draw_web_bezier(off_line_positive_2)
-                self.draw_web_bezier(off_line_negative_1)
-
-    def get_offset_points(self, line, offset):
-        p1 = self.trans_to_cartesian(line.p1)
-        p2 = self.trans_to_cartesian(line.p2)
-        cart_line = Line(p1, p2)
-        x_offset = math.sqrt((offset ** 2) / (1 + cart_line.slope ** 2))
-        y_offset = x_offset * cart_line.slope
-        return (
-            self.trans_to_pil(Point(x_offset, y_offset)),
-            self.trans_to_pil(Point(-x_offset, -y_offset)),
-        )
+                self.draw_web_bezier(off_line_positive_2, self.line_color)
+                self.draw_web_bezier(off_line_negative_1, self.line_color)
 
     def draw_web_circles(self):
         growth_rate = 1.5
@@ -81,7 +83,7 @@ class CharlottesWeb(object):
         log_space = np.linspace(min_offset, max_offset, num=self.num_circles)
         random_var = np.array(
             # [0.5 for _ in range(self.num_circles)],
-            [0.5 * random.random() for _ in range(self.num_circles)],
+            [0.05 * random.random() for _ in range(self.num_circles)],
         )
         for log_off in (log_space + random_var):
             offset = math.exp(log_off / growth_rate) * max_offset + 10
@@ -94,21 +96,21 @@ class CharlottesWeb(object):
             start = Point(0, 1.5 * self.height // 2)
             end = Point(0, -1.5 * self.height // 2)
             theta = 2 * math.pi * (line / num_lines)
-            theta += (random.random() - 0.5) / 2
+            theta += (random.random() - 0.5) / 20
             nstart = self.trans_to_pil(start.rotate(theta))
             nend = self.trans_to_pil(end.rotate(theta))
             web_line = Line(nstart, nend)
 
-            self.draw_line(web_line)
+            self.draw_line(web_line, fill=self.line_color, width=1)
             self.web_lines.append(web_line)
 
-    def draw_line(self, line):
-        self.draw.line(line.to_tuple(), fill=(220, 220, 210))
+    def draw_line(self, line, fill=color_white, width=0):
+        self.draw.line(line.to_tuple(), fill=fill, width=width)
 
-    def draw_point(self, point):
-        self.draw.point(point.to_tuple(), fill=(250, 250, 250))
+    def draw_point(self, point, fill=color_white):
+        self.draw.point(point.to_tuple(), fill=fill)
 
-    def draw_large_point(self, point, size=3, fill=(250, 250, 250)):
+    def draw_large_point(self, point, size=3, fill=color_white):
         """ To debug things. """
         p1 = point - size
         p2 = point + size
@@ -117,7 +119,7 @@ class CharlottesWeb(object):
             fill=fill,
         )
 
-    def draw_web_bezier(self, line):
+    def draw_web_bezier(self, line, fill=color_white):
         A, C = line.get_points()
         x_midpoint = A.x + C.x / 2
         perp_y_inter = A.y - line.slope * A.x
@@ -130,7 +132,7 @@ class CharlottesWeb(object):
         else:
             direction = -1
 
-        offset = line.length * 0.3 * direction * (random.random() + 1.5) / 16
+        offset = line.length * 0.3 * direction * (random.random() + 1.5) / 160
 
         y_inter = B_no_offset.y - (-1 / line.slope) * B_no_offset.x
         B = Point(
@@ -143,8 +145,19 @@ class CharlottesWeb(object):
             p1 = A * t + (1 - t) * B
             p2 = B * t + (1 - t) * C
             p_final = p1 * t + (1 - t) * p2
-            self.draw_line(Line(p_prev, p_final))
+            self.draw_line(Line(p_prev, p_final), fill)
             p_prev = p_final
+
+    def get_offset_points(self, line, offset):
+        p1 = self.trans_to_cartesian(line.p1)
+        p2 = self.trans_to_cartesian(line.p2)
+        cart_line = Line(p1, p2)
+        x_offset = math.sqrt((offset ** 2) / (1 + cart_line.slope ** 2))
+        y_offset = x_offset * cart_line.slope
+        return (
+            self.trans_to_pil(Point(x_offset, y_offset)),
+            self.trans_to_pil(Point(-x_offset, -y_offset)),
+        )
 
     def sign_image(self):
         font = ImageFont.truetype('fonts/Tangerine_Regular.ttf', 60)
@@ -255,4 +268,9 @@ class Line(object):
 
 
 if __name__ == '__main__':
-    CharlottesWeb().render()
+    image = CharlottesWeb().draw_image()
+    times = 100
+    for _ in range(times):
+        image = CharlottesWeb(image).draw_image()
+    image = CharlottesWeb(image).draw_image(signature=True)
+    image.show()
