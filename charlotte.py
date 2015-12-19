@@ -12,10 +12,12 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 
+color_white = (220, 220, 220)
+color_black = (17, 17, 23)
+
+
 class CharlottesWeb(object):
     """ Generates an image of a spider's web. """
-
-    color_white = (220, 220, 220)
 
     def __init__(self, image=None):
         self.im_scale = 2
@@ -36,13 +38,14 @@ class CharlottesWeb(object):
             self.im = Image.new(
                 'RGBA',
                 (self.width, self.height),
-                (17, 17, 23, 0),
+                color_black,
             )
         self.draw = ImageDraw.Draw(self.im)
 
     def draw_image(self, signature=False):
         self.draw_web_lines()
         self.draw_web_circles()
+        self.erase_center()
         if signature:
             self.sign_image()
         self.im.resize((self.final_width, self.final_height))
@@ -51,9 +54,16 @@ class CharlottesWeb(object):
     def show(self):
         self.im.show()
 
+    def erase_center(self):
+        center_point = Point(*self.center)
+        self.draw_large_point(Point(*self.center), 16, color_black)
+
     def draw_web_circle(self, offset):
         # iterate over adjacent pairs of lines
         for i in range(len(self.web_lines)):
+            # Sometimes the spider misses a connection
+            if random.random() < 0.2:
+                return
             line1 = self.web_lines[i]
             line2 = self.web_lines[(i + 1) % len(self.web_lines)]
             p1_positive, p1_negative = self.get_offset_points(line1, offset)
@@ -66,8 +76,6 @@ class CharlottesWeb(object):
             off_line_negative_1 = Line(p1_negative, p2_positive)
             off_line_negative_2 = Line(p1_negative, p2_negative)
 
-            if random.random() < 0.05:
-                return
 
             if off_line_positive_1.length < off_line_positive_2.length:
                 self.draw_web_bezier(off_line_positive_1, self.line_color)
