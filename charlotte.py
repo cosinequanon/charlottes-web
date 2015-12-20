@@ -1,7 +1,4 @@
-# def xfile(afile, globalz=None, localz=None):
-#     with open(afile, "r") as fh:
-#         exec(fh.read(), globalz, localz)
-
+""" Generates an image that resembles a spider's web.  """
 import hashlib
 import math
 import random
@@ -131,7 +128,6 @@ class CharlottesWeb(object):
         B_no_offset = Point(x_midpoint, line.slope * A.x + perp_y_inter)
         B_no_offset = (A + C) / 2
 
-        # if line.slope > 0:
         if self.trans_to_cartesian(B_no_offset).x < 0:
             direction = 1
         else:
@@ -191,6 +187,7 @@ class CharlottesWeb(object):
 
 
 class Point(object):
+    """ Silly little point class. """
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -250,6 +247,7 @@ class Point(object):
 
 
 class Line(object):
+    """ Holds two points and knows a few things about them. """
     def __init__(self, p1, p2):
         self.p1 = p1
         self.p2 = p2
